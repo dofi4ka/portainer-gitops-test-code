@@ -32,7 +32,7 @@ jobs:
       - name: Checkout infra repo
         uses: actions/checkout@v4
         with:
-          repository: myorg/infra-repo
+          repository: dofi4ka/portainer-gitops-test-code
           token: ${{ secrets.INFRA_REPO_TOKEN }}
           path: infra
 

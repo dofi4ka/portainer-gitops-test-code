@@ -39,7 +39,7 @@ jobs:
       - name: Update staging image tag
         run: |
           sed -i 's|image: ghcr.io/dofi4ka/portainer-gitops-test-code:.*|image: ghcr.io/myorg/myadofi4ka/portainer-gitops-test-codepp:sha-${{ github.sha }}|' \
-            portainer-gitops-test/compose/meow.yaml
+            infra/compose/meow.yaml
 
       - name: Commit staging change
         run: |

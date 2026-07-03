@@ -1,0 +1,51 @@
+name: build-and-promote-staging
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout app repo
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/myorg/myapp:sha-${{ github.sha }}
+
+      - name: Checkout infra repo
+        uses: actions/checkout@v4
+        with:
+          repository: myorg/infra-repo
+          token: ${{ secrets.INFRA_REPO_TOKEN }}
+          path: infra
+
+      - name: Update staging image tag
+        run: |
+          sed -i 's|image: ghcr.io/dofi4ka/portainer-gitops-test-code:.*|image: ghcr.io/myorg/myadofi4ka/portainer-gitops-test-codepp:sha-${{ github.sha }}|' \
+            compose/meow.yml
+
+      - name: Commit staging change
+        run: |
+          cd infra
+          git config user.name "ci-bot"
+          git config user.email "ci-bot@users.noreply.github.com"
+          git add stacks/staging/myapp/docker-compose.yml
+          git commit -m "staging: promote myapp to sha-${{ github.sha }}" || exit 0
+          git push
